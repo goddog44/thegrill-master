@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Loader, Flame, UtensilsCrossed } from 'lucide-react';
 import { supabase, Product } from '../lib/supabase';
 import { CategorySection } from './CategorySection';
-import grillLogo from '../../data/1-removebg-preview.png';
+import grillLogo from '/images/the-grill-master-logo.png';
 import { Cart } from './Cart';
 
 interface HomePageProps {
@@ -33,7 +33,7 @@ export const HomePage = ({ onCheckout }: HomePageProps) => {
     }
   };
 
-  const categories = ['Grillades', 'Accompagnements', 'Boissons', 'Sauces'];
+  const categories = ['Grillades', 'Accompagnements', 'Boissons', 'Sauces', 'Eau Minerale'];
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">

@@ -19,6 +19,7 @@ const categoryColors = {
   'Accompagnements': 'from-green-500 to-emerald-500',
   'Boissons': 'from-blue-500 to-cyan-500',
   'Sauces': 'from-amber-500 to-yellow-500',
+  'Eau Minerale': 'from-teal-500 to-cyan-500',
 };
 
 export const CategorySection = ({ category, products }: CategorySectionProps) => {

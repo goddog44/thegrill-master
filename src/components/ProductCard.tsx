@@ -2,6 +2,7 @@ import { Plus, Minus, ShoppingCart, Star } from 'lucide-react';
 import { Product } from '../lib/supabase';
 import { useCart } from '../contexts/CartContext';
 import { useState } from 'react';
+import { useSound } from '../hooks/useSound';
 
 interface ProductCardProps {
   product: Product;
@@ -11,6 +12,10 @@ export const ProductCard = ({ product }: ProductCardProps) => {
   const { addToCart, items } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
+
+    // Ajout du son
+  const playClick = useSound('/sounds/click3.mp3');
+  const playSuccess = useSound('/sounds/click4.mp3');  
 
   const cartItem = items.find(item => item.product.id === product.id);
   const inCartQuantity = cartItem?.quantity || 0;
@@ -23,10 +28,18 @@ export const ProductCard = ({ product }: ProductCardProps) => {
       setIsAdding(false);
       setQuantity(1);
     }, 600);
+    playSuccess(); // Son de succès
   };
 
-  const incrementQuantity = () => setQuantity(prev => Math.min(prev + 1, 10));
-  const decrementQuantity = () => setQuantity(prev => Math.max(prev - 1, 1));
+  const incrementQuantity = () => {
+    playClick(); // Son de clic
+    setQuantity(prev => Math.min(prev + 1, 10));
+  };
+  
+  const decrementQuantity = () => {
+    playClick(); // Son de clic
+    setQuantity(prev => Math.max(prev - 1, 1));
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">

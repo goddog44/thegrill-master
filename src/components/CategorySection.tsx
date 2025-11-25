@@ -12,6 +12,7 @@ const categoryIcons = {
   'Accompagnements': Salad,
   'Boissons': Coffee,
   'Sauces': Droplet,
+  'Eau Minerale': Droplet,
 };
 
 const categoryColors = {
@@ -19,7 +20,7 @@ const categoryColors = {
   'Accompagnements': 'from-green-500 to-emerald-500',
   'Boissons': 'from-blue-500 to-cyan-500',
   'Sauces': 'from-amber-500 to-yellow-500',
-  'Eau Minerale': 'from-teal-500 to-cyan-500',
+  'Eau Minerale': 'from-cyan-500 to-blue-500',
 };
 
 export const CategorySection = ({ category, products }: CategorySectionProps) => {
@@ -32,14 +33,14 @@ export const CategorySection = ({ category, products }: CategorySectionProps) =>
 
   return (
     <section className="mb-8">
-      {/* En-tête de catégorie avec icône et badge */}
-      <div className="px-4 mb-5">
+      {/* En-tête de catégorie */}
+      <div className="px-0 mb-5">
         <div className="flex items-center gap-3 mb-2">
           <div className={`bg-gradient-to-br ${gradientColor} p-2.5 rounded-xl shadow-lg`}>
             <Icon className="text-white" size={24} />
           </div>
           <div className="flex-1">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+            <h2 className="text-2xl lg:text-3xl font-bold text-gray-800 flex items-center gap-2">
               {category}
             </h2>
           </div>
@@ -52,8 +53,8 @@ export const CategorySection = ({ category, products }: CategorySectionProps) =>
         <div className={`h-1 bg-gradient-to-r ${gradientColor} rounded-full w-20 opacity-60`}></div>
       </div>
 
-      {/* Grille de produits */}
-      <div className="grid grid-cols-2 gap-4 px-4">
+      {/* Grille responsive: 2 cols mobile, 3 cols tablet, 4 cols desktop */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 lg:gap-6">
         {categoryProducts.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}

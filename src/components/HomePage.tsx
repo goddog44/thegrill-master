@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Loader, Flame, UtensilsCrossed } from 'lucide-react';
+import { Loader, Flame, UtensilsCrossed, Phone, Mail, MapPin } from 'lucide-react';
 import { supabase, Product } from '../lib/supabase';
 import { CategorySection } from './CategorySection';
 import grillLogo from '/images/the-grill-master-logo.png';
@@ -36,7 +36,7 @@ export const HomePage = ({ onCheckout }: HomePageProps) => {
   const categories = ['Grillades', 'Accompagnements', 'Boissons', 'Sauces', 'Eau Minerale'];
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-24">
+    <div className="min-h-screen bg-gray-50">
       <header className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-800 text-white sticky top-0 z-10 shadow-2xl">
         {/* Motif décoratif en arrière-plan */}
         <div className="absolute inset-0 bg-black/10 overflow-hidden">
@@ -84,7 +84,7 @@ export const HomePage = ({ onCheckout }: HomePageProps) => {
         <div className="h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent"></div>
       </header>
 
-      <main className="max-w-md mx-auto pt-6">
+      <main className="max-w-md mx-auto pt-6 pb-32">
         {loading ? (
           <div className="flex justify-center items-center py-20">
             <Loader className="animate-spin text-emerald-600" size={40} />
@@ -101,6 +101,84 @@ export const HomePage = ({ onCheckout }: HomePageProps) => {
           </div>
         )}
       </main>
+
+      {/* Footer */}
+      {/* Footer */}
+<footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white mt-8 pb-10">
+  <div className="max-w-md mx-auto px-6 py-4">
+
+    {/* Logo et nom */}
+    <div className="flex items-center gap-3 mb-3">
+      <img 
+        src={grillLogo}
+        alt="Grill Master Logo"
+        className="w-10 h-10 object-contain"
+      />
+      <div>
+        <h3 className="text-lg font-bold">The Grill Master</h3>
+        <p className="text-gray-400 text-xs">Grillades authentiques</p>
+      </div>
+    </div>
+
+    {/* Séparateur */}
+    <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-4"></div>
+
+    {/* Informations de contact */}
+    <div className="space-y-3 mb-4">
+      <a 
+        href="tel:+237655613839"
+        className="flex items-center gap-3 text-gray-300 hover:text-emerald-400 transition-colors group"
+      >
+        <div className="bg-emerald-600/20 p-2 rounded-lg group-hover:bg-emerald-600/30 transition-colors">
+          <Phone size={16} className="text-emerald-400" />
+        </div>
+        <div>
+          <p className="text-[11px] text-gray-500">Téléphone</p>
+          <p className="text-sm font-medium">+237 655 613 839</p>
+        </div>
+      </a>
+
+      <a 
+        href="mailto:thegrillmaster@gmail.com"
+        className="flex items-center gap-3 text-gray-300 hover:text-emerald-400 transition-colors group"
+      >
+        <div className="bg-emerald-600/20 p-2 rounded-lg group-hover:bg-emerald-600/30 transition-colors">
+          <Mail size={16} className="text-emerald-400" />
+        </div>
+        <div>
+          <p className="text-[11px] text-gray-500">Email</p>
+          <p className="text-sm font-medium">thegrillmaster@gmail.com</p>
+        </div>
+      </a>
+
+      <div className="flex items-center gap-3 text-gray-300">
+        <div className="bg-emerald-600/20 p-2 rounded-lg">
+          <MapPin size={16} className="text-emerald-400" />
+        </div>
+        <div>
+          <p className="text-[11px] text-gray-500">Adresse</p>
+          <p className="text-sm font-medium">Biyem Assi, Entrée Savanne</p>
+          <p className="text-xs text-gray-400">Yaoundé, Cameroun</p>
+        </div>
+      </div>
+    </div>
+
+    {/* Séparateur */}
+    <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent mb-4"></div>
+
+    {/* Copyright */}
+    <div className="text-center">
+      <p className="text-gray-400 text-xs flex items-center justify-center gap-1">
+        Essono Jordan Ryan
+      </p>
+      <p className="text-gray-500 text-[10px] mt-1">
+        © {new Date().getFullYear()} Tous droits réservés
+      </p>
+    </div>
+
+  </div>
+</footer>
+
 
       <Cart onCheckout={onCheckout} />
     </div>

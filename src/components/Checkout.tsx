@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ArrowLeft, Loader, User, Phone, MapPin, ShoppingBag, DollarSign } from 'lucide-react';
+import { ArrowLeft, Loader, User, Phone, MapPin, ShoppingBag, DollarSign, MapPinned } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { supabase } from '../lib/supabase';
 import { useSound } from '../hooks/useSound';
+import { Restaurant3DMap, RestaurantTable } from './RestaurantMap';
 
 interface CheckoutProps {
   onBack: () => void;
@@ -11,6 +12,8 @@ interface CheckoutProps {
 export const Checkout = ({ onBack }: CheckoutProps) => {
   const { items, getTotalAmount, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
+  const [selectedTable, setSelectedTable] = useState<RestaurantTable | null>(null);
+  const [showMap, setShowMap] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -21,12 +24,25 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
   const playBack = useSound('/sounds/click1.mp3');
   const playFocus = useSound('/sounds/click1.mp3');
   const playSubmit = useSound('/sounds/click1.mp3');
-  const playSuccess = useSound('/sounds/click1.mp3');
+  const playSuccess = useSound('/sounds/click4.mp3');
   const playError = useSound('/sounds/click1.mp3');
 
   const handleBack = () => {
     playBack();
     onBack();
+  };
+
+  const handleTableSelect = (table: RestaurantTable) => {
+    setSelectedTable(table);
+  };
+
+  const getZoneLabel = (zone: string) => {
+    switch (zone) {
+      case 'interieur': return 'Intérieur';
+      case 'terrasse': return 'Terrasse';
+      case 'vip': return 'VIP';
+      default: return zone;
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -35,13 +51,20 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
     setLoading(true);
 
     try {
-      const orderData = {
+      // Données de commande (avec ou sans table)
+      const orderData: any = {
         customer_name: formData.name,
         customer_phone: formData.phone,
         delivery_address: formData.address,
         total_amount: getTotalAmount(),
         status: 'pending',
       };
+
+      // Ajouter les infos de table si sélectionnée
+      if (selectedTable) {
+        orderData.table_id = selectedTable.id;
+        orderData.table_number = selectedTable.table_number;
+      }
 
       const { data: order, error: orderError } = await supabase
         .from('orders')
@@ -64,29 +87,30 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
 
       if (itemsError) throw itemsError;
 
-      // Son de succès
       playSuccess();
 
-      // Message WhatsApp - garde les emojis car c'est du texte pur
-      const whatsappMessage = encodeURIComponent(
-        `🍽️ *Nouvelle commande - The Grill Master*\n\n` +
+      // Message WhatsApp avec ou sans table
+      let whatsappMessage = `🍽️ *Nouvelle commande - The Grill Master*\n\n`;
+      
+      if (selectedTable) {
+        whatsappMessage += `🪑 *Table #${selectedTable.table_number}* (${getZoneLabel(selectedTable.zone)})\n`;
+      }
+      
+      whatsappMessage += 
         `👤 Nom: ${formData.name}\n` +
         `📱 Téléphone: ${formData.phone}\n` +
-        `📍 ${formData.address}\n\n` +
+        `📍 ${formData.address || 'Non spécifié'}\n\n` +
         `*Détails de la commande:*\n` +
         items.map(item =>
           `• ${item.product.name} x${item.quantity} = ${item.product.price * item.quantity} FCFA`
         ).join('\n') +
         `\n\n💰 *Total: ${getTotalAmount()} FCFA*\n\n` +
-        `Commande #${order.id.substring(0, 8)}`
-      );
+        `Commande #${order.id.substring(0, 8)}`;
 
-      const whatsappNumber = '237655613839';
-      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+      const whatsappUrl = `https://wa.me/237655613839?text=${encodeURIComponent(whatsappMessage)}`;
 
       clearCart();
       
-      // Petit délai pour que le son se joue avant la redirection
       setTimeout(() => {
         window.location.href = whatsappUrl;
       }, 500);
@@ -101,12 +125,12 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header avec gradient */}
+      {/* Header */}
       <div className="bg-gradient-to-r from-emerald-600 to-emerald-700 text-white p-4 sticky top-0 z-10 shadow-lg">
-        <div className="max-w-md lg:max-w-7xl mx-auto flex items-center gap-3">
+        <div className="max-w-md lg:max-w-4xl mx-auto flex items-center gap-3">
           <button 
             onClick={handleBack} 
-            className="hover:bg-emerald-700 p-2 rounded-lg transition-all active:scale-95 hover:shadow-md"
+            className="hover:bg-emerald-700 p-2 rounded-lg transition-all active:scale-95"
           >
             <ArrowLeft size={24} />
           </button>
@@ -117,14 +141,70 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
         </div>
       </div>
 
-      <div className="max-w-md lg:max-w-7xl mx-auto p-4 lg:p-6">
-        {/* Récapitulatif de commande */}
+      <div className="max-w-md lg:max-w-4xl mx-auto p-4 lg:p-6">
+        
+        {/* Sélection de table (optionnel) */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="bg-purple-100 p-2 rounded-lg">
+                <MapPinned className="text-purple-600" size={20} />
+              </div>
+              <div>
+                <h2 className="font-bold text-lg text-gray-800">Sélectionner une table</h2>
+                <p className="text-xs text-gray-500">Optionnel - pour manger sur place</p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowMap(!showMap)}
+              className="px-4 py-2 bg-purple-100 text-purple-700 rounded-lg text-sm font-semibold hover:bg-purple-200 transition-colors"
+            >
+              {showMap ? 'Masquer la carte' : 'Voir la carte'}
+            </button>
+          </div>
+
+          {/* Table sélectionnée */}
+          {selectedTable && (
+            <div className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-lg p-3 mb-4">
+              <div>
+                <p className="font-bold text-emerald-800">
+                  Table #{selectedTable.table_number}
+                </p>
+                <p className="text-sm text-emerald-600">
+                  {getZoneLabel(selectedTable.zone)} • {selectedTable.capacity} places
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedTable(null)}
+                className="text-red-500 hover:text-red-700 text-sm font-semibold"
+              >
+                Annuler
+              </button>
+            </div>
+          )}
+
+          {/* Carte du restaurant */}
+          {showMap && (
+            <div className="mt-4">
+              <Restaurant3DMap
+                onSelectTable={handleTableSelect}
+                selectedTableId={selectedTable?.id}
+              />
+            </div>
+          )}
+        </div>
+
+        
+
+        {/* Récapitulatif */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6 border border-gray-100">
           <div className="flex items-center gap-2 mb-4">
             <div className="bg-emerald-100 p-2 rounded-lg">
               <ShoppingBag className="text-emerald-600" size={20} />
             </div>
-            <h2 className="font-bold text-lg text-gray-800">Récapitulatif de votre commande</h2>
+            <h2 className="font-bold text-lg text-gray-800">Récapitulatif</h2>
           </div>
           
           <div className="space-y-3 mb-4">
@@ -159,19 +239,16 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
           </div>
         </div>
 
-        {/* Formulaire d'informations */}
+        {/* Formulaire */}
         <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
           <div className="flex items-center gap-2 mb-6">
             <div className="bg-emerald-100 p-2 rounded-lg">
               <User className="text-emerald-600" size={20} />
             </div>
-            <h2 className="font-bold text-lg text-gray-800">
-              Vos informations de livraison
-            </h2>
+            <h2 className="font-bold text-lg text-gray-800">Vos informations</h2>
           </div>
 
           <div className="space-y-5">
-            {/* Nom complet */}
             <div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                 <User size={16} className="text-emerald-600" />
@@ -188,7 +265,6 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
               />
             </div>
 
-            {/* Téléphone */}
             <div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                 <Phone size={16} className="text-emerald-600" />
@@ -205,14 +281,12 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
               />
             </div>
 
-            {/* Adresse */}
             <div>
               <label className="flex items-center gap-2 text-sm font-semibold text-gray-700 mb-2">
                 <MapPin size={16} className="text-emerald-600" />
-                Adresse de livraison ou retrait
+                Adresse de livraison ou notes
               </label>
               <textarea
-                required
                 value={formData.address}
                 onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                 onFocus={playFocus}
@@ -221,11 +295,10 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
                 placeholder="Ex: Biyem Assi, près du carrefour ou 'Retrait au restaurant'"
               />
               <p className="text-xs text-gray-500 mt-2">
-                 Soyez précis pour faciliter la livraison
+                💡 {selectedTable ? 'Vous avez sélectionné une table pour manger sur place' : 'Précisez votre adresse pour la livraison'}
               </p>
             </div>
 
-            {/* Bouton de confirmation */}
             <button
               type="submit"
               disabled={loading}
@@ -240,14 +313,14 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
                 <>
                   <ShoppingBag size={20} />
                   Confirmer ma commande
+                  {selectedTable && ` (Table #${selectedTable.table_number})`}
                 </>
               )}
             </button>
 
-            {/* Info supplémentaire */}
-            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 mt-4">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
               <p className="text-sm text-emerald-800 text-center">
-                 Votre commande sera sécurisée et envoyée directement sur WhatsApp
+                Votre commande sera envoyée directement sur WhatsApp
               </p>
             </div>
           </div>

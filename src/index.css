@@ -2,4 +2,183 @@
 @tailwind components;
 @tailwind utilities;
 
+@keyframes blob {
+    0% {
+        transform: translate(0px, 0px) scale(1);
+    }
 
+    33% {
+        transform: translate(30px, -50px) scale(1.1);
+    }
+
+    66% {
+        transform: translate(-20px, 20px) scale(0.9);
+    }
+
+    100% {
+        transform: translate(0px, 0px) scale(1);
+    }
+}
+
+.animate-blob {
+    animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+    animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+    animation-delay: 4s;
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.animate-fade-in {
+    animation: fade-in 0.2s ease-out;
+}
+
+@keyframes slide-up {
+    from {
+        transform: translateY(100%);
+    }
+
+    to {
+        transform: translateY(0);
+    }
+}
+
+.animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+}
+
+@keyframes slide-down {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.animate-slide-down {
+    animation: slide-down 0.3s ease-out;
+}
+
+@keyframes scale-in {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.animate-scale-in {
+    animation: scale-in 0.2s ease-out;
+}
+
+@keyframes bounce-soft {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+.animate-bounce-soft {
+    animation: bounce-soft 2s ease-in-out infinite;
+}
+
+@keyframes glow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 5px rgba(16, 185, 129, 0.5);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(16, 185, 129, 0.8);
+    }
+}
+
+.animate-glow {
+    animation: glow 2s ease-in-out infinite;
+}
+
+@keyframes spin-slow {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin-slow {
+    animation: spin-slow 3s linear infinite;
+}
+
+canvas {
+    display: block;
+}
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #10b981;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #059669;
+}
+
+*:focus-visible {
+    outline: 2px solid #10b981;
+    outline-offset: 2px;
+}
+
+* {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}

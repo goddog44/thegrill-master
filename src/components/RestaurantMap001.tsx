@@ -1,10 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
-import { 
-  Users, CheckCircle, RotateCcw, ZoomIn, ZoomOut, Eye, Sparkles,
-  Home, TreePine, Crown, Armchair, MousePointerClick, XCircle, Ban
-} from 'lucide-react';
+import { Users, CheckCircle, RotateCcw, ZoomIn, ZoomOut, Eye, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useSound } from '../hooks/useSound';
 
@@ -34,6 +31,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
   const mouseRef = useRef<THREE.Vector2>(new THREE.Vector2());
   const animationRef = useRef<number>(0);
   
+  // ✅ IMPORTANT: Refs pour éviter les problèmes de closure
   const hoveredTableRef = useRef<string | null>(null);
   const tablesRef = useRef<RestaurantTable[]>([]);
 
@@ -45,6 +43,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
   const playClick = useSound('/sounds/click3.mp3');
   const playSelect = useSound('/sounds/click4.mp3');
 
+  // Sync refs avec states
   useEffect(() => {
     hoveredTableRef.current = hoveredTable;
   }, [hoveredTable]);
@@ -87,6 +86,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
     { id: '10', table_number: 10, zone: 'vip', capacity: 8, position_x: 70, position_y: 75, is_available: true },
   ];
 
+  // ✅ FONCTION CLIC CORRIGÉE - utilise raycaster directement au moment du clic
   const handleCanvasClick = useCallback((event: MouseEvent) => {
     if (!containerRef.current || !cameraRef.current || !sceneRef.current) return;
 
@@ -128,9 +128,11 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
     }
   }, [onSelectTable, playSelect]);
 
+  // Initialiser la scène 3D
   useEffect(() => {
     if (!containerRef.current || loading || tables.length === 0) return;
 
+    // Cleanup
     if (rendererRef.current && containerRef.current.contains(rendererRef.current.domElement)) {
       containerRef.current.removeChild(rendererRef.current.domElement);
       rendererRef.current.dispose();
@@ -323,6 +325,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
   };
 
   const createFloor = (scene: THREE.Scene) => {
+    // Parquet
     const canvas = document.createElement('canvas');
     canvas.width = 256;
     canvas.height = 256;
@@ -350,6 +353,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
     floor.receiveShadow = true;
     scene.add(floor);
 
+    // Terrasse
     const terrasse = new THREE.Mesh(
       new THREE.PlaneGeometry(10, 10),
       new THREE.MeshStandardMaterial({ color: 0x7cb342, roughness: 0.9 })
@@ -359,6 +363,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
     terrasse.receiveShadow = true;
     scene.add(terrasse);
 
+    // VIP
     const vip = new THREE.Mesh(
       new THREE.PlaneGeometry(14, 6),
       new THREE.MeshStandardMaterial({ color: 0x7c3aed, roughness: 0.8 })
@@ -368,6 +373,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
     vip.receiveShadow = true;
     scene.add(vip);
 
+    // Bordures VIP dorées
     const vipBorderMat = new THREE.MeshStandardMaterial({ color: 0xffd700, metalness: 0.8, roughness: 0.3 });
     const vipBorder1 = new THREE.Mesh(new THREE.BoxGeometry(14.2, 0.08, 0.2), vipBorderMat);
     vipBorder1.position.set(0, 0.04, 5);
@@ -390,6 +396,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
     leftWall.castShadow = true;
     scene.add(leftWall);
 
+    // Fenêtres
     const windowMat = new THREE.MeshStandardMaterial({ color: 0x87ceeb, transparent: true, opacity: 0.4 });
     const frameMat = new THREE.MeshStandardMaterial({ color: 0x5d4037 });
     [-6, 6].forEach(x => {
@@ -401,6 +408,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
       scene.add(frame);
     });
 
+    // Enseigne néon
     const signBoard = new THREE.Mesh(
       new THREE.BoxGeometry(8, 1.2, 0.2),
       new THREE.MeshStandardMaterial({ color: 0x2d2d2d })
@@ -434,6 +442,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
     barTop.position.set(0, 1.25, -9);
     scene.add(barTop);
 
+    // Tabourets
     for (let i = -3; i <= 3; i += 2) {
       const stool = new THREE.Group();
       const seat = new THREE.Mesh(
@@ -452,6 +461,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
       scene.add(stool);
     }
 
+    // Étagères avec bouteilles
     for (let y = 2; y <= 4; y += 1) {
       const shelf = new THREE.Mesh(
         new THREE.BoxGeometry(8, 0.1, 0.4),
@@ -495,6 +505,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
       if (table.zone === 'terrasse') baseColor = 0x6b4423;
       else if (table.zone === 'vip') baseColor = 0x4a2c2a;
 
+      // Plateau
       const tableTop = new THREE.Mesh(
         new THREE.CylinderGeometry(0.9, 0.9, 0.08, 32),
         new THREE.MeshStandardMaterial({ color: table.is_available ? baseColor : 0x666666, roughness: 0.3 })
@@ -505,6 +516,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
       tableTop.userData.tableId = table.id;
       group.add(tableTop);
 
+      // Nappe
       let clothColor = 0xffffff;
       if (!table.is_available) clothColor = 0x9ca3af;
       else if (table.zone === 'interieur') clothColor = 0xfef3c7;
@@ -520,6 +532,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
       cloth.userData.tableId = table.id;
       group.add(cloth);
 
+      // Pied
       const leg = new THREE.Mesh(
         new THREE.CylinderGeometry(0.08, 0.12, 0.75, 12),
         new THREE.MeshStandardMaterial({ color: 0x2d2d2d, metalness: 0.7 })
@@ -528,6 +541,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
       leg.castShadow = true;
       group.add(leg);
 
+      // Base
       const base = new THREE.Mesh(
         new THREE.CylinderGeometry(0.3, 0.35, 0.05, 16),
         new THREE.MeshStandardMaterial({ color: 0x2d2d2d, metalness: 0.7 })
@@ -535,6 +549,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
       base.position.y = 0.025;
       group.add(base);
 
+      // Chaises
       const chairCount = Math.min(table.capacity, 6);
       for (let i = 0; i < chairCount; i++) {
         const angle = (i / chairCount) * Math.PI * 2 + Math.PI / chairCount;
@@ -544,6 +559,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
         group.add(chair);
       }
 
+      // Badge numéro
       const badgeCanvas = document.createElement('canvas');
       badgeCanvas.width = 128;
       badgeCanvas.height = 128;
@@ -567,6 +583,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
       badge.scale.set(0.8, 0.8, 1);
       group.add(badge);
 
+      // Vase si disponible
       if (table.is_available) {
         const vase = new THREE.Group();
         const vaseMesh = new THREE.Mesh(
@@ -623,6 +640,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
   };
 
   const createDecorations = (scene: THREE.Scene) => {
+    // Plantes
     [[-11, 0, -11], [11, 0, -11], [-11, 0, 6]].forEach(pos => {
       const plant = new THREE.Group();
       const pot = new THREE.Mesh(
@@ -643,6 +661,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
       scene.add(plant);
     });
 
+    // Lampes
     [[-4, 0], [4, 0], [0, 5], [-4, 8], [4, 8]].forEach(pos => {
       const lamp = new THREE.Group();
       const cable = new THREE.Mesh(
@@ -674,6 +693,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
       scene.add(lamp);
     });
 
+    // Panneau VIP
     const vipSign = new THREE.Group();
     const post = new THREE.Mesh(
       new THREE.CylinderGeometry(0.05, 0.05, 1.5, 8),
@@ -735,13 +755,12 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
     }
   };
 
-  // Fonction pour obtenir l'icône de zone
-  const getZoneIcon = (zone: string, size: number = 24) => {
+  const getZoneEmoji = (zone: string) => {
     switch (zone) {
-      case 'interieur': return <Home size={size} />;
-      case 'terrasse': return <TreePine size={size} />;
-      case 'vip': return <Crown size={size} />;
-      default: return <Armchair size={size} />;
+      case 'interieur': return '🏠';
+      case 'terrasse': return '🌳';
+      case 'vip': return '👑';
+      default: return '🪑';
     }
   };
 
@@ -795,22 +814,18 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
       <div className="px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 border-b flex flex-wrap gap-4 justify-center">
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full shadow"></div>
-          <Home size={16} className="text-amber-600" />
-          <span className="text-sm text-gray-700 font-medium">Intérieur</span>
+          <span className="text-sm text-gray-700 font-medium">🏠 Intérieur</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-gradient-to-br from-green-400 to-green-600 rounded-full shadow"></div>
-          <TreePine size={16} className="text-green-600" />
-          <span className="text-sm text-gray-700 font-medium">Terrasse</span>
+          <span className="text-sm text-gray-700 font-medium">🌳 Terrasse</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full shadow"></div>
-          <Crown size={16} className="text-purple-600" />
-          <span className="text-sm text-gray-700 font-medium">VIP</span>
+          <span className="text-sm text-gray-700 font-medium">👑 VIP</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-4 h-4 bg-gray-400 rounded-full shadow"></div>
-          <Ban size={16} className="text-gray-500" />
           <span className="text-sm text-gray-700 font-medium">Occupée</span>
         </div>
       </div>
@@ -831,8 +846,8 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
               return selected ? (
                 <>
                   <div className="flex items-center gap-4">
-                    <div className="bg-emerald-100 p-3 rounded-xl text-emerald-600">
-                      {getZoneIcon(selected.zone, 28)}
+                    <div className="bg-emerald-100 p-3 rounded-xl">
+                      <span className="text-2xl">{getZoneEmoji(selected.zone)}</span>
                     </div>
                     <div>
                       <p className="text-xl font-bold text-gray-800">Table #{selected.table_number}</p>
@@ -840,7 +855,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-emerald-600 font-bold text-lg">Sélectionnée</span>
+                    <span className="text-emerald-600 font-bold text-lg">Sélectionnée ✓</span>
                     <CheckCircle className="text-emerald-500" size={32} />
                   </div>
                 </>
@@ -854,25 +869,17 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
               return hovered ? (
                 <>
                   <div className="flex items-center gap-4">
-                    <div className="bg-blue-100 p-3 rounded-xl text-blue-600">
-                      {getZoneIcon(hovered.zone, 28)}
+                    <div className="bg-blue-100 p-3 rounded-xl">
+                      <span className="text-2xl">{getZoneEmoji(hovered.zone)}</span>
                     </div>
                     <div>
                       <p className="text-xl font-bold text-gray-800">Table #{hovered.table_number}</p>
                       <p className="text-sm text-gray-600">{getZoneLabel(hovered.zone)} • {hovered.capacity} personnes</p>
                     </div>
                   </div>
-                  {hovered.is_available ? (
-                    <div className="flex items-center gap-2 text-blue-600 font-semibold">
-                      <MousePointerClick size={20} />
-                      <span>Cliquez pour sélectionner</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 text-red-500 font-semibold">
-                      <XCircle size={20} />
-                      <span>Table occupée</span>
-                    </div>
-                  )}
+                  <p className={`font-semibold ${hovered.is_available ? 'text-blue-600' : 'text-red-500'}`}>
+                    {hovered.is_available ? '👆 Cliquez pour sélectionner' : '❌ Table occupée'}
+                  </p>
                 </>
               ) : null;
             })()}

@@ -36,7 +36,7 @@ export const HomePage = ({ onCheckout }: HomePageProps) => {
   const categories = ['Grillades', 'Accompagnements', 'Boissons', 'Sauces', 'Eau Minerale'];
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen flex flex-col">
       {/* Background avec pattern et gradient */}
       <div className="fixed inset-0 -z-10">
         {/* Gradient de base */}
@@ -56,14 +56,15 @@ export const HomePage = ({ onCheckout }: HomePageProps) => {
         <div className="absolute -bottom-32 left-20 w-72 h-72 bg-yellow-200 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
 
-      <header className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-800 text-white sticky top-0 z-10 shadow-2xl">
+      {/* Header Fixed */}
+      <header className="bg-gradient-to-br from-emerald-600 via-emerald-700 to-emerald-800 text-white fixed top-0 left-0 right-0 z-50 shadow-2xl">
         {/* Motif décoratif en arrière-plan */}
         <div className="absolute inset-0 bg-black/10 overflow-hidden">
           <div className="absolute -top-4 -right-4 w-32 h-32 bg-white/5 rounded-full blur-3xl"></div>
           <div className="absolute -bottom-4 -left-4 w-40 h-40 bg-white/5 rounded-full blur-3xl"></div>
         </div>
 
-        <div className="relative max-w-md lg:max-w-7xl mx-auto px-6 py-8">
+        <div className="relative max-w-md lg:max-w-7xl mx-auto px-6 py-3">
           {/* Section logo et titre */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
@@ -114,7 +115,8 @@ export const HomePage = ({ onCheckout }: HomePageProps) => {
         <div className="h-1 bg-gradient-to-r from-transparent via-emerald-400 to-transparent"></div>
       </header>
 
-      <main className="max-w-md lg:max-w-7xl mx-auto pt-6 pb-32 relative px-4 lg:px-6">
+      {/* Main Content avec padding pour header et footer */}
+      <main className="flex-1 max-w-md lg:max-w-7xl mx-auto w-full px-4 lg:px-6 pt-[180px] pb-[280px] lg:pt-[200px] lg:pb-[220px]">
         {loading ? (
           <div className="flex justify-center items-center py-20">
             <Loader className="animate-spin text-emerald-600" size={40} />
@@ -132,8 +134,8 @@ export const HomePage = ({ onCheckout }: HomePageProps) => {
         )}
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white mt-8 pb-10 lg:pb-6 relative">
+      {/* Footer Fixed */}
+      <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white fixed bottom-0 left-0 right-0 z-40 shadow-2xl">
         {/* Pattern subtil dans le footer */}
         <div 
           className="absolute inset-0 opacity-5"
@@ -142,12 +144,12 @@ export const HomePage = ({ onCheckout }: HomePageProps) => {
           }}
         ></div>
 
-        <div className="max-w-md lg:max-w-7xl mx-auto px-6 py-6 lg:py-8 relative">
+        <div className="max-w-md lg:max-w-7xl mx-auto px-6 py-2 lg:py-4 relative">
           {/* Layout mobile: vertical | Layout desktop: horizontal */}
           <div className="lg:grid lg:grid-cols-3 lg:gap-8">
             
             {/* Logo et nom */}
-            <div className="flex items-center gap-3 mb-6 lg:mb-0">
+            <div className="flex items-center gap-3 mb-4 lg:mb-0">
               <img 
                 src={grillLogo}
                 alt="Grill Master Logo"
@@ -160,7 +162,7 @@ export const HomePage = ({ onCheckout }: HomePageProps) => {
             </div>
 
             {/* Informations de contact */}
-            <div className="space-y-3 mb-6 lg:mb-0 lg:col-span-2">
+            <div className="space-y-3 mb-4 lg:mb-0 lg:col-span-2">
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
                 <a 
                   href="tel:+237655613839"
@@ -203,7 +205,7 @@ export const HomePage = ({ onCheckout }: HomePageProps) => {
           </div>
 
           {/* Séparateur */}
-          <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent my-6"></div>
+          <div className="h-px bg-gradient-to-r from-transparent via-gray-700 to-transparent my-4"></div>
 
           {/* Copyright */}
           <div className="text-center lg:flex lg:justify-between lg:items-center">

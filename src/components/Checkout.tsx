@@ -62,8 +62,8 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
 
       // Ajouter les infos de table si sélectionnée
       if (selectedTable) {
-        orderData.table_id = selectedTable.id;
-        orderData.table_number = selectedTable.table_number;
+        orderData.table_id = selectedTable.id;    
+        orderData.table_number = selectedTable.table_number; 
       }
 
       const { data: order, error: orderError } = await supabase

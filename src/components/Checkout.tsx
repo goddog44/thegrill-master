@@ -4,6 +4,7 @@ import { useCart } from '../contexts/CartContext';
 import { supabase } from '../lib/supabase';
 import { useSound } from '../hooks/useSound';
 import { Restaurant3DMap, RestaurantTable } from './RestaurantMap';
+import { ValidationAlert } from './ValidationAlert';
 
 interface CheckoutProps {
   onBack: () => void;
@@ -14,6 +15,8 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
   const [loading, setLoading] = useState(false);
   const [selectedTable, setSelectedTable] = useState<RestaurantTable | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -45,8 +48,43 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
     }
   };
 
+  const validateOrder = () => {
+    // Vérifier s'il y a des items dans le panier
+    if (items.length === 0) {
+      playError();
+      setAlertMessage('Votre panier est vide. Veuillez ajouter des articles.');
+      setShowAlert(true);
+      return false;
+    }
+
+    // Vérifier s'il y a une grillade dans la commande
+    const hasGrillade = items.some(item => item.product.category === 'Grillades');
+    
+    // Catégories qui nécessitent une grillade
+    const complementCategories = ['Sauces', 'Boissons', 'Accompagnements'];
+    const hasComplement = items.some(item => 
+      complementCategories.includes(item.product.category)
+    );
+
+    // Si on a des compléments (Sauces, Boissons, Accompagnements) mais pas de grillade
+    if (hasComplement && !hasGrillade) {
+      playError();
+      setAlertMessage('🔥 Veuillez ajouter au moins une Grillade à votre commande avant d\'ajouter des Sauces, Boissons ou Accompagnements.');
+      setShowAlert(true);
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Valider la commande d'abord
+    if (!validateOrder()) {
+      return;
+    }
+
     playSubmit();
     setLoading(true);
 
@@ -326,6 +364,13 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
           </div>
         </form>
       </div>
+
+      <ValidationAlert
+        message={alertMessage}
+        isOpen={showAlert}
+        onClose={() => setShowAlert(false)}
+        type="error"
+      />
     </div>
   );
 };

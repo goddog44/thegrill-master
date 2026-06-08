@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ArrowLeft, Loader, User, Phone, MapPin, ShoppingBag, DollarSign, MapPinned } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
+import { useCart, getCartItemTotal, isFreeFirstPortionProduct } from '../contexts/CartContext';
 import { supabase } from '../lib/supabase';
 import { useSound } from '../hooks/useSound';
 import { Restaurant3DMap, RestaurantTable } from './RestaurantMap';
@@ -116,7 +116,7 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
         order_id: order.id,
         product_id: item.product.id,
         quantity: item.quantity,
-        unit_price: item.product.price,
+        unit_price: isFreeFirstPortionProduct(item.product) ? 100 : item.product.price,
       }));
 
       const { error: itemsError } = await supabase
@@ -139,9 +139,16 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
         `📱 Téléphone: ${formData.phone}\n` +
         `📍 ${formData.address || 'Non spécifié'}\n\n` +
         `*Détails de la commande:*\n` +
-        items.map(item =>
-          `• ${item.product.name} x${item.quantity} = ${item.product.price * item.quantity} FCFA`
-        ).join('\n') +
+        items.map(item => {
+          const total = getCartItemTotal(item);
+          if (isFreeFirstPortionProduct(item.product)) {
+            if (item.quantity <= 1) {
+              return `• ${item.product.name} x${item.quantity} = Free`;
+            }
+            return `• ${item.product.name} x${item.quantity} = Free + ${item.quantity - 1} × 100 FCFA = ${total} FCFA`;
+          }
+          return `• ${item.product.name} x${item.quantity} = ${total} FCFA`;
+        }).join('\n') +
         `\n\n💰 *Total: ${getTotalAmount()} FCFA*\n\n` +
         `Commande #${order.id.substring(0, 8)}`;
 
@@ -155,7 +162,8 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
     } catch (error) {
       console.error('Erreur lors de la commande:', error);
       playError();
-      alert('Une erreur est survenue. Veuillez réessayer.');
+      setAlertMessage('Une erreur est survenue. Veuillez réessayer.');
+      setShowAlert(true);
     } finally {
       setLoading(false);
     }
@@ -229,6 +237,10 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
               <Restaurant3DMap
                 onSelectTable={handleTableSelect}
                 selectedTableId={selectedTable?.id}
+                onSetLocation={(coords: string) => {
+                  setFormData(prev => ({ ...prev, address: coords }));
+                  setShowMap(false);
+                }}
               />
             </div>
           )}
@@ -256,11 +268,16 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
                   />
                   <div>
                     <p className="font-medium text-gray-800">{item.product.name}</p>
-                    <p className="text-xs text-gray-500">Quantité: {item.quantity}</p>
+                    <p className="text-xs text-gray-500">
+                      Quantité: {item.quantity}
+                      {isFreeFirstPortionProduct(item.product) && item.quantity > 1 && (
+                        <> • 1ère gratuite + {item.quantity - 1} × 100 FCFA</>
+                      )}
+                    </p>
                   </div>
                 </div>
                 <span className="font-bold text-emerald-600">
-                  {(item.product.price * item.quantity).toLocaleString()} FCFA
+                  {getCartItemTotal(item).toLocaleString()} FCFA
                 </span>
               </div>
             ))}

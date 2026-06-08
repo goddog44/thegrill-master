@@ -17,6 +17,31 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+export const isFreeFirstPortionProduct = (product: Product) =>
+  /mayonnaise|piment/i.test(product.name);
+
+export const getCartItemTotal = (item: CartItem) => {
+  if (isFreeFirstPortionProduct(item.product)) {
+    return Math.max(item.quantity - 1, 0) * 100;
+  }
+  return item.product.price * item.quantity;
+};
+
+export const getCartItemUnitPrice = (product: Product) =>
+  isFreeFirstPortionProduct(product) ? 100 : product.price;
+
+export const getCartItemLineLabel = (item: CartItem) => {
+  if (isFreeFirstPortionProduct(item.product)) {
+    if (item.quantity <= 1) return 'Free';
+    const extras = item.quantity - 1;
+    return `Free + ${extras} × 100 FCFA = ${(extras * 100).toLocaleString()} FCFA`;
+  }
+  return `${(item.product.price * item.quantity).toLocaleString()} FCFA`;
+};
+
+export const getCartItemUnitLabel = (product: Product) =>
+  isFreeFirstPortionProduct(product) ? 'Free' : `${product.price.toLocaleString()} FCFA`;
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
 
@@ -56,7 +81,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const getTotalAmount = () => {
     return items.reduce(
-      (total, item) => total + item.product.price * item.quantity,
+      (total, item) => total + getCartItemTotal(item),
       0
     );
   };

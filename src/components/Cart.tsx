@@ -1,5 +1,5 @@
 import { ShoppingCart, Trash2, Minus, Plus, X } from 'lucide-react';
-import { useCart } from '../contexts/CartContext';
+import { useCart, getCartItemTotal, isFreeFirstPortionProduct } from '../contexts/CartContext';
 import { useState } from 'react';
 import { useSound } from '../hooks/useSound';
 
@@ -111,7 +111,11 @@ export const Cart = ({ onCheckout }: CartProps) => {
                           {item.product.name}
                         </h3>
                         <p className="text-emerald-600 font-bold text-sm mb-2">
-                          {item.product.price.toLocaleString()} FCFA × {item.quantity}
+                          {isFreeFirstPortionProduct(item.product)
+                            ? item.quantity === 1
+                              ? 'Free'
+                              : `Free (1ère) + ${item.quantity - 1} × 100 FCFA`
+                            : `${item.product.price.toLocaleString()} FCFA × ${item.quantity}`}
                         </p>
                         
                         {/* Contrôles de quantité */}
@@ -136,7 +140,7 @@ export const Cart = ({ onCheckout }: CartProps) => {
                           
                           {/* Prix total de la ligne */}
                           <span className="text-sm font-semibold text-gray-700 ml-auto mr-2">
-                            {(item.product.price * item.quantity).toLocaleString()} FCFA
+                            {getCartItemTotal(item).toLocaleString()} FCFA
                           </span>
                           
                           {/* Bouton supprimer */}

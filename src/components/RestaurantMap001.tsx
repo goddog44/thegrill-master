@@ -40,6 +40,12 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
   const [hoveredTable, setHoveredTable] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'3d' | 'top'>('3d');
 
+  // Localisation utilisateur / saisie manuelle
+  const [locationCoords, setLocationCoords] = useState<string | null>(null);
+  const [showLocationInput, setShowLocationInput] = useState(false);
+  const [manualLocation, setManualLocation] = useState('');
+  const locationMarkerRef = useRef<THREE.Object3D | null>(null);
+
   const playClick = useSound('/sounds/click3.mp3');
   const playSelect = useSound('/sounds/click4.mp3');
 
@@ -721,6 +727,72 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
     }
   };
 
+  // --- Géolocalisation et saisie manuelle ---
+  const createLocationMarker = (scene: THREE.Scene, x: number, z: number) => {
+    removeLocationMarker();
+    const marker = new THREE.Group();
+    const mat = new THREE.MeshStandardMaterial({ color: 0x0ea5a4, emissive: 0x0ea5a4 });
+    const cone = new THREE.Mesh(new THREE.ConeGeometry(0.15, 0.4, 12), mat);
+    cone.position.y = 0.25;
+    marker.add(cone);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.02, 12), new THREE.MeshStandardMaterial({ color: 0xffffff }));
+    base.position.y = 0.01;
+    marker.add(base);
+    marker.position.set(x, 0, z);
+    scene.add(marker);
+    locationMarkerRef.current = marker;
+  };
+
+  const removeLocationMarker = () => {
+    if (!sceneRef.current || !locationMarkerRef.current) return;
+    sceneRef.current.remove(locationMarkerRef.current);
+    locationMarkerRef.current = null;
+  };
+
+  const handleLocateMe = () => {
+    if (!navigator.geolocation) {
+      alert('Géolocalisation non supportée par votre navigateur.');
+      return;
+    }
+    playClick();
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const coords = `${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`;
+        setLocationCoords(coords);
+        // On place un marqueur visuel approximatif au centre de la scène (repère visuel).
+        if (sceneRef.current) createLocationMarker(sceneRef.current, 0, 0);
+      },
+      (err) => {
+        alert('Impossible de récupérer la position: ' + err.message);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const handleManualLocationSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    playClick();
+    if (!manualLocation) return;
+    setLocationCoords(manualLocation);
+    setShowLocationInput(false);
+    // attempt to parse coordinates "lat,lng" to place marker approximately
+    const parts = manualLocation.split(',').map(p => p.trim());
+    if (parts.length === 2 && !isNaN(Number(parts[0])) && !isNaN(Number(parts[1]))) {
+      // Place marker at scene center as approximation
+      if (sceneRef.current) createLocationMarker(sceneRef.current, 0, 0);
+    }
+  };
+
+  const copyLocationToClipboard = async () => {
+    if (!locationCoords) return;
+    try {
+      await navigator.clipboard.writeText(locationCoords);
+      alert('Coordonnées copiées dans le presse-papier. Vous pouvez les coller dans le champ adresse.');
+    } catch (err) {
+      alert('Impossible de copier. Veuillez copier manuellement: ' + locationCoords);
+    }
+  };
+
   const zoomIn = () => {
     playClick();
     if (cameraRef.current) cameraRef.current.position.multiplyScalar(0.85);
@@ -782,7 +854,7 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
     <div className="bg-white rounded-2xl shadow-2xl overflow-hidden border border-gray-100">
       {/* Header */}
       <div className="bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="bg-white/20 backdrop-blur-sm p-2.5 rounded-xl">
               <Sparkles className="text-white" size={26} />
@@ -790,10 +862,13 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
             <div>
               <h2 className="text-xl font-bold text-white">Plan 3D du Restaurant</h2>
               <p className="text-white/80 text-sm">Cliquez sur une table verte pour la réserver</p>
+              <p className="text-white/80 text-xs mt-2">Utilisation: vous pouvez localiser automatiquement votre position ou entrer un lieu manuellement. Ces coordonnées peuvent être copiées et collées dans le champ "Adresse" lors de la validation de la commande.</p>
             </div>
           </div>
 
           <div className="flex items-center gap-2">
+            <button onClick={handleLocateMe} className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-white transition-all text-sm">Localiser ma position</button>
+            <button onClick={() => setShowLocationInput(!showLocationInput)} className="px-3 py-2 bg-white/20 hover:bg-white/30 rounded-xl text-white transition-all text-sm">Entrer un lieu</button>
             <button onClick={toggleView} className="p-2.5 bg-white/20 hover:bg-white/30 rounded-xl text-white transition-all" title={viewMode === '3d' ? 'Vue du dessus' : 'Vue 3D'}>
               <Eye size={20} />
             </button>
@@ -808,6 +883,18 @@ export const Restaurant3DMap = ({ onSelectTable, selectedTableId }: Restaurant3D
             </button>
           </div>
         </div>
+
+        {showLocationInput && (
+          <form onSubmit={handleManualLocationSubmit} className="mt-3 flex gap-2">
+            <input
+              className="w-full rounded-lg px-3 py-2 border border-white/20 bg-white/10 text-white text-sm outline-none"
+              placeholder="Entrez des coordonnées 'lat,lng' ou une adresse texte"
+              value={manualLocation}
+              onChange={(e) => setManualLocation(e.target.value)}
+            />
+            <button type="submit" className="px-3 py-2 bg-white/30 rounded-lg text-white text-sm">Utiliser</button>
+          </form>
+        )}
       </div>
 
       {/* Légende */}

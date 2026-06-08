@@ -1,6 +1,6 @@
 import { Plus, Minus, ShoppingCart, Star } from 'lucide-react';
 import { Product } from '../lib/supabase';
-import { useCart } from '../contexts/CartContext';
+import { useCart, isFreeFirstPortionProduct } from '../contexts/CartContext';
 import { useState } from 'react';
 import { useSound } from '../hooks/useSound';
 
@@ -88,8 +88,10 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         {/* PRIX + DISPONIBILITÉ */}
         <div className="flex items-center justify-between mb-3">
           <p className="text-lg sm:text-xl font-bold text-emerald-600">
-            {product.price.toLocaleString()}
-            <span className="text-xs text-gray-500 ml-1">FCFA</span>
+            {isFreeFirstPortionProduct(product) ? 'Free' : product.price.toLocaleString()}
+            {!isFreeFirstPortionProduct(product) && (
+              <span className="text-xs text-gray-500 ml-1">FCFA</span>
+            )}
           </p>
 
           <div
@@ -158,7 +160,9 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         {/* TOTAL */}
         {quantity > 1 && (
           <p className="text-center text-[11px] text-gray-500 mt-2">
-            Total: {(product.price * quantity).toLocaleString()} FCFA
+            {isFreeFirstPortionProduct(product)
+              ? `Free + ${quantity - 1} × 100 FCFA = ${(Math.max(quantity - 1, 0) * 100).toLocaleString()} FCFA`
+              : `Total: ${(product.price * quantity).toLocaleString()} FCFA`}
           </p>
         )}
       </div>

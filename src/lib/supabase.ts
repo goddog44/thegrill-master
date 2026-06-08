@@ -82,7 +82,7 @@ export const createOrderWithTable = async (
     order_id: data.id,
     product_id: item.id,
     quantity: item.quantity,
-    price: item.price
+    unit_price: item.price
   }));
 
   const { error: itemsError } = await supabase

@@ -62,14 +62,21 @@ export const Checkout = ({ onBack }: CheckoutProps) => {
     
     // Catégories qui nécessitent une grillade
     const complementCategories = ['Sauces', 'Boissons', 'Accompagnements'];
-    const hasComplement = items.some(item => 
-      complementCategories.includes(item.product.category)
-    );
+    const hasComplement = items.some(item => complementCategories.includes(item.product.category));
+    const hasAccompaniment = items.some(item => item.product.category === 'Accompagnements');
 
     // Si on a des compléments (Sauces, Boissons, Accompagnements) mais pas de grillade
     if (hasComplement && !hasGrillade) {
       playError();
       setAlertMessage('🔥 Veuillez ajouter au moins une Grillade à votre commande avant d\'ajouter des Sauces, Boissons ou Accompagnements.');
+      setShowAlert(true);
+      return false;
+    }
+
+    // Si on commande une grillade, il faut au moins un accompagnement
+    if (hasGrillade && !hasAccompaniment) {
+      playError();
+      setAlertMessage('🍽️ Une grillade doit être commandée avec au moins un accompagnement. Merci d\'ajouter une garniture.');
       setShowAlert(true);
       return false;
     }

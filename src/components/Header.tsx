@@ -49,7 +49,7 @@ export const Header = () => {
                 </h1>
 
                 <p className="text-xs lg:text-sm text-gray-500">
-                  Grillades • Poissons • Ndomba
+                  Grillades • Sauces • Accompagnements
                 </p>
               </div>
             </div>

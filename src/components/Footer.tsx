@@ -73,7 +73,7 @@ export const Footer = () => {
               </div>
             </div>
           </div>
-
+{/* 
           <div className="border-t border-gray-200 mt-4 pt-4 flex flex-col lg:flex-row justify-between items-center gap-2">
             <p className="text-sm text-gray-500">
               Développé par Essono Jordan Ryan
@@ -82,7 +82,7 @@ export const Footer = () => {
             <p className="text-xs text-gray-400">
               © {new Date().getFullYear()} The Grill Master
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
     </footer>
